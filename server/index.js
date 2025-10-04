@@ -5,11 +5,13 @@ const cors = require("cors");
 const app = express();
 
 // CORS configuration
-app.use(cors({
-  origin: '*', // Be cautious with this in production
-  methods: ['GET', 'POST', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
-}));
+app.use(
+  cors({
+    origin: "*", // Be cautious in production
+    methods: ["GET", "POST", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  })
+);
 
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
@@ -35,33 +37,49 @@ async function makeApiRequest(url) {
   }
 }
 
+// Fetch all news by query
 app.get("/all-news", async (req, res) => {
-  let pageSize = parseInt(req.query.pageSize) || 80;
-  let page = parseInt(req.query.page) || 1;
-  let q = req.query.q || 'world'; // Default search query if none provided
+  const pageSize = parseInt(req.query.pageSize) || 80;
+  const page = parseInt(req.query.page) || 1;
+  const q = req.query.q || "world"; // Default search query
 
-  let url = `https://newsapi.org/v2/everything?q=${encodeURIComponent(q)}&page=${page}&pageSize=${pageSize}&apiKey=${process.env.API_KEY}`;
+  const url = `https://newsapi.org/v2/everything?q=${encodeURIComponent(
+    q
+  )}&page=${page}&pageSize=${pageSize}&apiKey=${process.env.API_KEY}`;
   const result = await makeApiRequest(url);
   res.status(result.status).json(result);
 });
 
+// Fetch top headlines by category
 app.get("/top-headlines", async (req, res) => {
-  let pageSize = parseInt(req.query.pageSize) || 80;
-  let page = parseInt(req.query.page) || 1;
-  let category = req.query.category || "general";
+  const pageSize = parseInt(req.query.pageSize) || 80;
+  const page = parseInt(req.query.page) || 1;
+  const category = req.query.category || "general";
 
-  let url = `https://newsapi.org/v2/top-headlines?category=${category}&language=en&page=${page}&pageSize=${pageSize}&apiKey=${process.env.API_KEY}`;
+  const url = `https://newsapi.org/v2/top-headlines?category=${category}&language=en&page=${page}&pageSize=${pageSize}&apiKey=${process.env.API_KEY}`;
   const result = await makeApiRequest(url);
   res.status(result.status).json(result);
 });
 
+// Fetch country-specific news with fallback
 app.get("/country/:iso", async (req, res) => {
-  let pageSize = parseInt(req.query.pageSize) || 80;
-  let page = parseInt(req.query.page) || 1;
-  const country = req.params.iso;
+  const pageSize = parseInt(req.query.pageSize) || 80;
+  const page = parseInt(req.query.page) || 1;
+  const country = req.params.iso.toLowerCase(); // Ensure lowercase ISO code
 
-  let url = `https://newsapi.org/v2/top-headlines?country=${country}&apiKey=${process.env.API_KEY}&page=${page}&pageSize=${pageSize}`;
-  const result = await makeApiRequest(url);
+  // First try top-headlines
+  let url = `https://newsapi.org/v2/top-headlines?country=${country}&page=${page}&pageSize=${pageSize}&apiKey=${process.env.API_KEY}`;
+  let result = await makeApiRequest(url);
+
+  // Fallback: if no articles, search with country name
+  if (result.success && result.data.articles.length === 0) {
+    console.log(`No top-headlines for ${country}, falling back to search`);
+    const fallbackUrl = `https://newsapi.org/v2/everything?q=${encodeURIComponent(
+      country
+    )}&page=${page}&pageSize=${pageSize}&apiKey=${process.env.API_KEY}`;
+    result = await makeApiRequest(fallbackUrl);
+  }
+
   res.status(result.status).json(result);
 });
 

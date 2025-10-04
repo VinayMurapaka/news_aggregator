@@ -1,38 +1,78 @@
-import { useState } from "react";
+import React, { useState, useEffect } from "react";
 import "./App.css";
 import Header from "./components/Header";
 import AllNews from "./components/AllNews";
 import TopHeadlines from "./components/TopHeadlines";
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Route, Routes, useNavigate, Navigate } from "react-router-dom";
 import CountryNews from "./components/CountryNews";
 import SavedArticles from "./components/SavedArticles";
+import Login from "./components/Login";
 
-function App() {
-  const [savedArticles, setSavedArticles] = useState([]);
+const MainApp = () => {
+  // Initialize authentication state by checking for a token in local storage
+  const [isAuthenticated, setIsAuthenticated] = useState(!!localStorage.getItem('token'));
+  const navigate = useNavigate();
 
-  const handleSaveArticle = (article) => {
-    if (!savedArticles.some(a => a.url === article.url)) {
-      setSavedArticles([...savedArticles, article]);
+  useEffect(() => {
+    // Re-check token status on component mount
+    const token = localStorage.getItem('token');
+    if (token) {
+      setIsAuthenticated(true);
+    } else {
+      setIsAuthenticated(false);
     }
-  };
+  }, []);
 
-  const handleRemoveArticle = (url) => {
-    setSavedArticles(savedArticles.filter(a => a.url !== url));
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    setIsAuthenticated(false);
+    navigate('/login');
   };
 
   return (
     <div className="w-full">
-      <BrowserRouter>
-        <Header savedCount={savedArticles.length} />
-        <Routes>
-          <Route path="/" element={<AllNews onSave={handleSaveArticle} savedArticles={savedArticles} />} />
-          <Route path="/top-headlines/:category" element={<TopHeadlines onSave={handleSaveArticle} savedArticles={savedArticles} />} />
-          <Route path="/country/:iso" element={<CountryNews onSave={handleSaveArticle} savedArticles={savedArticles} />} />
-          <Route path="/saved" element={<SavedArticles articles={savedArticles} onRemove={handleRemoveArticle} />} />
-        </Routes>
-      </BrowserRouter>
+      <Header isAuthenticated={isAuthenticated} handleLogout={handleLogout} />
+      <Routes>
+        {/* Public and Conditional Routes */}
+        <Route 
+            path="/login" 
+            element={isAuthenticated ? <Navigate to="/" replace /> : <Login setAuth={setIsAuthenticated} />} 
+        />
+        <Route 
+            path="/" 
+            element={<AllNews isAuthenticated={isAuthenticated} />} 
+        />
+        <Route 
+            path="/top-headlines/:category" 
+            element={<TopHeadlines isAuthenticated={isAuthenticated} />} 
+        />
+        <Route 
+            path="/country/:iso" 
+            element={<CountryNews isAuthenticated={isAuthenticated} />} 
+        />
+        
+        {/* Protected Route */}
+        <Route 
+            path="/saved" 
+            element={isAuthenticated ? <SavedArticles /> : <ProtectedMessage />} 
+        />
+      </Routes>
     </div>
   );
+};
+
+const ProtectedMessage = () => (
+    <div className="p-8 text-center text-xl text-gray-600">
+        You must be logged in to view your saved articles.
+    </div>
+);
+
+function App() {
+    return (
+        <BrowserRouter>
+            <MainApp />
+        </BrowserRouter>
+    );
 }
 
 export default App;
