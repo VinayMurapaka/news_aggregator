@@ -1,0 +1,153 @@
+import React, { useState, useEffect } from "react";
+import { Link, useNavigate } from 'react-router-dom'
+import countries from "./countries";
+import downArrow from './../assets/downarrow.png'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faCircleArrowDown } from '@fortawesome/free-solid-svg-icons'
+import axios from 'axios';
+
+// Component now accepts isAuthenticated and handleLogout props from App.jsx
+function Header({ isAuthenticated, handleLogout }) { 
+  const [active, setActive] = useState(false);
+  const [showCountryDropdown, setShowCountryDropdown] = useState(false);
+  const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
+  const navigate = useNavigate(); // Hook to allow navigation
+
+  const [theme, setTheme] = useState("light-theme");
+  let category = ["business", "entertainment", "general", "health", "science", "sports", "technology","politics"]
+  
+  useEffect(() => {
+    document.body.className = theme;
+  }, [theme])
+  
+  function toggleTheme() {
+    if (theme === "light-theme") {
+      setTheme("dark-theme")
+    }
+    else {
+      setTheme("light-theme")
+    }
+  }
+  
+  // Helper function to close all dropdowns and the mobile menu
+  const closeMenu = () => {
+    setActive(false);
+    setShowCountryDropdown(false);
+    setShowCategoryDropdown(false);
+  }
+
+  return (
+    <header className="">
+     <nav class="fixed top-0 left-0 w-full h-auto bg-gray-800 z-10 flex items-center justify-around">
+      
+      <h3 class="relative heading font-bold md:basis-1/6 text-2xl xs:basis-4/12 z-50 mb-5 mt-5">News Aggregator</h3>
+
+        <ul className={active ? "nav-ul flex gap-11 md:gap-14 xs:gap-12 lg:basis-3/6 md:basis-4/6 md:justify-end active" : " nav-ul flex gap-14 lg:basis-3/6 md:basis-4/6 justify-end"}>
+          <li><Link className="no-underline font-semibold" to="/" onClick={closeMenu}>All News</Link></li>
+          
+          {/* Top-Headlines Dropdown */}
+          <li className="dropdown-li">
+            <Link 
+              className="no-underline font-semibold flex items-center gap-2" 
+              onClick={() => { 
+                setShowCategoryDropdown(!showCategoryDropdown); 
+                setShowCountryDropdown(false) 
+              }}
+            >
+              Top-Headlines <FontAwesomeIcon className={showCategoryDropdown ? "down-arrow-icon down-arrow-icon-active" : "down-arrow-icon"} icon={faCircleArrowDown} />
+            </Link>
+
+            <ul className={showCategoryDropdown ? "dropdown p-2 show-dropdown" : "dropdown p-2"}>
+              {category.map((element, index) => {
+                return (
+                  <li key={index} onClick={() => { setShowCategoryDropdown(!showCategoryDropdown); closeMenu(); }}>
+                    <Link to={"/top-headlines/" + element} className="flex gap-3 capitalize" type="btn"
+                      onClick={closeMenu}>
+                      {element}
+                    </Link>
+                  </li>
+                )
+              })}
+            </ul>
+          </li>
+
+          {/* Country Dropdown */}
+          <li className="dropdown-li">
+            <Link 
+              className="no-underline font-semibold flex items-center gap-2" 
+              onClick={() => { 
+                setShowCountryDropdown(!showCountryDropdown); 
+                setShowCategoryDropdown(false) 
+              }}>
+                Country <FontAwesomeIcon className={showCountryDropdown ? "down-arrow-icon down-arrow-icon-active" : "down-arrow-icon"} icon={faCircleArrowDown} />
+            </Link>
+            <ul className={showCountryDropdown ? "dropdown p-2 show-dropdown" : "dropdown p-2"}>
+              {countries.map((element, index) => {
+                return (
+                  <li key={index} onClick={() => { setShowCountryDropdown(!showCountryDropdown); closeMenu(); }}>
+                    <Link to={"/country/" + element?.iso_2_alpha} className="flex gap-3" type="btn"
+                      onClick={closeMenu}>
+                      <img
+                        src={element?.png}
+                        srcSet={`https://flagcdn.com/32x24/${element?.iso_2_alpha}.png 2x`}
+                        alt={element?.countryName} />
+                      <span>{element?.countryName}</span>
+                    </Link>
+                  </li>
+                )
+              })}
+            </ul>
+          </li>
+
+          {/* Conditional Saved Link */}
+          {isAuthenticated && (
+          <li><Link to="/saved" className="no-underline font-semibold" onClick={closeMenu}>Saved</Link></li>
+          )}
+
+          {/* Conditional Login/Logout Button */}
+          <li>
+            {isAuthenticated ? (
+                <button 
+                  onClick={() => { handleLogout(); closeMenu(); }}
+                  className="px-3 py-1 bg-red-600 hover:bg-red-700 text-white rounded-md font-semibold transition duration-150"
+                >
+                  Logout
+                </button>
+            ) : (
+                <button 
+                  onClick={() => { navigate('/login'); closeMenu(); }}
+                  className="px-3 py-1 bg-indigo-600 hover:bg-indigo-700 text-white rounded-md font-semibold transition duration-150"
+                >
+                  Login
+                </button>
+            )}
+          </li>
+
+          <li>
+            <div className="theme-toggle">
+              <input
+                type="checkbox"
+                className="checkbox"
+                id="checkbox"
+                checked={theme === "dark-theme"}
+                onChange={toggleTheme}
+              />
+              <label htmlFor="checkbox" className="checkbox-label">
+                <i className="fas fa-moon"></i>
+                <i className="fas fa-sun"></i>
+                <span className="ball"></span>
+              </label>
+            </div>
+          </li>
+        </ul>
+        <div className={active ? "ham-burger z-index-100 ham-open" : "ham-burger z-index-100"} onClick={() => { setActive(!active) }}>
+          <span className="lines line-1"></span>
+          <span className="lines line-2"></span>
+          <span className="lines line-3"></span>
+         </div>
+      </nav>
+    </header>
+ );
+}
+
+export default Header;
