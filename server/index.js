@@ -12,11 +12,11 @@ const app = express();
 app.use(
   cors({
     origin: [
-      "https://news-aggregator-ecj4.vercel.app" // your actual Vercel frontend URL
-      // add "http://localhost:5173" if you need local dev access
+      "https://news-aggregator-ecj4.vercel.app", // your actual Vercel frontend URL
+      "http://localhost:5173" // for local development
     ],
-    methods: ["GET", "POST", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
+    methods: ["GET", "POST", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization", "x-auth-token"],
     credentials: true
   })
 );
@@ -24,9 +24,16 @@ app.use(
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// MongoDB connection
-mongoose.connect(process.env.MONGODB_URI)
-  .catch(err => console.error("MongoDB connection error:", err));
+// MongoDB connection with better error handling
+mongoose.connect(process.env.MONGODB_URI, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true
+})
+  .then(() => console.log("MongoDB connected successfully"))
+  .catch(err => {
+    console.error("MongoDB connection error:", err);
+    process.exit(1); // Exit if database connection fails
+  });
 
 // SCHEMAS & MODELS
 const userSchema = new mongoose.Schema({
@@ -80,7 +87,7 @@ async function makeApiRequest(url) {
 
 // AUTHENTICATION MIDDLEWARE
 const auth = (req, res, next) => {
-  const token = req.header("x-auth-token");
+  const token = req.header("x-auth-token") || req.header("Authorization")?.replace("Bearer ", "");
   if (!token) {
     return res.status(401).json({ msg: "No token, authorization denied" });
   }
