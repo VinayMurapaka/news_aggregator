@@ -2,6 +2,9 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 
+// Add this line for your backend from Vite env
+const API_URL = import.meta.env.VITE_API_URL;
+
 const Login = ({ setAuth }) => {
     const [isLogin, setIsLogin] = useState(true);
     const [username, setUsername] = useState('');
@@ -16,30 +19,23 @@ const Login = ({ setAuth }) => {
         setLoading(true);
 
         const url = isLogin
-            ? 'http://127.0.0.1:5000/api/auth/login'
-            : 'http://127.0.0.1:5000/api/auth/register';
+            ? `${API_URL}/api/auth/login`
+            : `${API_URL}/api/auth/register`;
 
         if (username.length === 0 || password.length === 0) {
             setLoading(false);
             return setError("Please fill out this field.");
         }
-
-        // --- START MODIFICATION ---
-        // We will send the 'username' input field as both 'username' and 'email' 
-        // to satisfy the backend's unique email constraint (E11000 error).
-        // This is a temporary fix until the database schema is corrected or email input is added.
         const payload = {
             username: username,
             password: password,
-            email: username // Sending 'username' value as 'email'
+            email: username
         };
-        // --- END MODIFICATION ---
 
         try {
             console.log("Sending request to:", url);
-            console.log("With data:", payload); // Log the new payload
+            console.log("With data:", payload);
 
-            // Send the modified payload
             const response = await axios.post(url, payload);
 
             console.log("Response received:", response);
@@ -58,7 +54,6 @@ const Login = ({ setAuth }) => {
             console.error("Authentication Error Details:", err.response || err);
             let errorMessage = 'Authentication failed. Check credentials.';
             if (err.response) {
-                // Show full backend error message and status code if available
                 errorMessage =
                     `Error ${err.response.status}: ` +
                     (err.response.data?.message || JSON.stringify(err.response.data) || errorMessage);

@@ -3,7 +3,9 @@ import EverythingCard from "./EverythingCard";
 import { useNavigate } from 'react-router-dom';
 import axiosInstance from '../axiosInstance';
 
-const API_BASE_URL = '/api/saved';
+// Use backend URL from env
+const API_URL = import.meta.env.VITE_API_URL;
+const API_BASE_URL = `${API_URL}/api/saved`;
 
 function SavedArticles() {
     const [articles, setArticles] = useState([]);

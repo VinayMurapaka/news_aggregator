@@ -4,6 +4,9 @@ import EverythingCard from './EverythingCard';
 import Loader from './Loader';
 import axiosInstance from '../axiosInstance';
 
+// Use the backend API URL from env
+const API_URL = import.meta.env.VITE_API_URL;
+
 function CountryNews({ isAuthenticated }) {
     const params = useParams();
     const navigate = useNavigate();
@@ -42,7 +45,7 @@ function CountryNews({ isAuthenticated }) {
         };
 
         try {
-            const response = await axiosInstance.post('/api/save', articleToSave);
+            const response = await axiosInstance.post(`${API_URL}/api/save`, articleToSave);
             if (response.status === 200 || response.status === 201) {
                 setSaveMessage({ type: 'success', text: 'Article saved successfully!' });
             }
@@ -57,20 +60,18 @@ function CountryNews({ isAuthenticated }) {
     useEffect(() => {
         setIsLoading(true);
         setError(null);
-        axiosInstance.get(`/country/${params.iso}?page=${page}&pageSize=${pageSize}`)
+        axiosInstance.get(`${API_URL}/country/${params.iso}?page=${page}&pageSize=${pageSize}`)
             .then((response) => {
                 const myJson = response.data;
                 if (myJson.success) {
                     setTotalResults(myJson.data.totalResults);
                     setData(myJson.data.articles || []);
                 } else {
-                    // This error is crucial to display if the key is bad or rate-limited
                     setError(myJson.message || 'An error occurred');
                 }
             })
             .catch((error) => {
                 console.error('Fetch error:', error);
-                // Specific error message to help diagnose connection failure
                 setError('Failed to fetch news. Please check your backend server and API key.');
             })
             .finally(() => {
@@ -90,7 +91,6 @@ function CountryNews({ isAuthenticated }) {
                 </div>
             )}
             <h2 className='text-3xl font-bold text-center mt-4'>News for Country: {params.iso.toUpperCase()}</h2>
-            {/* Display error message clearly */}
             {error && <div className="text-red-500 mb-4 text-center p-4 bg-red-100 rounded-lg mx-auto max-w-lg">**Error Fetching News:** {error}</div>}
             <div className="my-10 cards grid lg:place-content-center md:grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 xs:grid-cols-1 xs:gap-4 md:gap-10 lg:gap-14 md:px-16 xs:p-3">
                 {!isLoading ? (

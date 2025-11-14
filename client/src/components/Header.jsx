@@ -6,12 +6,11 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faCircleArrowDown } from '@fortawesome/free-solid-svg-icons'
 import axios from 'axios';
 
-// Component now accepts isAuthenticated and handleLogout props from App.jsx
 function Header({ isAuthenticated, handleLogout }) { 
   const [active, setActive] = useState(false);
   const [showCountryDropdown, setShowCountryDropdown] = useState(false);
   const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
-  const navigate = useNavigate(); // Hook to allow navigation
+  const navigate = useNavigate();
 
   const [theme, setTheme] = useState("light-theme");
   let category = ["business", "entertainment", "general", "health", "science", "sports", "technology","politics"]
@@ -29,7 +28,7 @@ function Header({ isAuthenticated, handleLogout }) {
     }
   }
   
-  // Helper function to close all dropdowns and the mobile menu
+
   const closeMenu = () => {
     setActive(false);
     setShowCountryDropdown(false);

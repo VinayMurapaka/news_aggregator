@@ -1,14 +1,11 @@
 import React from "react";
 
-// Renamed component for consistency with the file structure
 function EverythingCard(props) { 
   const { title, imgUrl, description, url, source, author, publishedAt, onSave, saved } = props;
 
-  // Assemble the article data to be passed to the save handler
   const articleData = { 
     title, 
     description, 
-    // IMPORTANT: Mapping imgUrl back to urlToImage for consistency with News API data structure
     urlToImage: imgUrl, 
     url, 
     source, 

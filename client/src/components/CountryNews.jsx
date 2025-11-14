@@ -4,6 +4,9 @@ import EverythingCard from './EverythingCard';
 import Loader from './Loader';
 import axiosInstance from '../axiosInstance';
 
+// Add API_URL from Vite env
+const API_URL = import.meta.env.VITE_API_URL;
+
 function CountryNews({ isAuthenticated }) {
     const params = useParams();
     const navigate = useNavigate();
@@ -42,7 +45,7 @@ function CountryNews({ isAuthenticated }) {
         };
 
         try {
-            const response = await axiosInstance.post('/api/save', articleToSave);
+            const response = await axiosInstance.post(`${API_URL}/api/save`, articleToSave);
             if (response.status === 200 || response.status === 201) {
                 setSaveMessage({ type: 'success', text: 'Article saved successfully!' });
             }
@@ -57,7 +60,7 @@ function CountryNews({ isAuthenticated }) {
     useEffect(() => {
         setIsLoading(true);
         setError(null);
-        axiosInstance.get(`/country/${params.iso}?page=${page}&pageSize=${pageSize}`)
+        axiosInstance.get(`${API_URL}/country/${params.iso}?page=${page}&pageSize=${pageSize}`)
             .then((response) => {
                 const myJson = response.data;
                 if (myJson.success) {
