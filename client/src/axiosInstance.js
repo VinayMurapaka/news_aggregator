@@ -1,8 +1,8 @@
 import axios from 'axios';
 
-// Create an instance pointing to your backend URL
+// Use environment variable for backend URL, fallback to localhost for development
 const axiosInstance = axios.create({
-    baseURL: 'http://localhost:5000',
+    baseURL: import.meta.env.VITE_API_URL || 'http://localhost:5000',
 });
 
 // Request interceptor to add the JWT token to every request
@@ -21,3 +21,4 @@ axiosInstance.interceptors.request.use(
 );
 
 export default axiosInstance;
+        
